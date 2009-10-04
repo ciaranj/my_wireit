@@ -200,6 +200,66 @@ ExecutionFrame.prototype = {
           
           this.executeModules(moduleId, "out");
       }
+      if( t == "xpath" ) {
+          var expression= module.value.expr;
+          var xml;
+          var doExpressionSearch= false;
+          if( expression == "[wired]") {
+              doExpressionSearch= true;
+          }
+          var wires = this.wiringConfig.working.wires;
+          var paramValue;
+          for(var i = 0 ; i < wires.length ; i++) {
+             var wire = wires[i];
+             if(wire.tgt.moduleId == moduleId) {
+                 if(wire.tgt.terminal=="expr" && doExpressionSearch) {
+                     expression = this.execValues[wire.src.moduleId][wire.src.terminal];
+                 }
+                 else if ( wire.tgt.terminal=="in") {
+                     xml = this.execValues[wire.src.moduleId][wire.src.terminal];
+                 }  
+             } 
+         }
+          
+         var dom= xmlParse(xml);
+         var xpathExpr=  xpathParse(expression);
+         var value= xpathExpr.evaluate(new ExprContext(dom));
+          this.execValues[moduleId] = {
+             out: value
+          };
+
+          this.executeModules(moduleId, "out");
+      }      
+      else if(t == "extJsBox") {
+         
+         //console.log("execute jsbox ", module.config.codeText);
+         
+         // build the params list
+         var args = [];
+         var wires = this.wiringConfig.working.wires;
+         for(var i = 0 ; i < wires.length ; i++) {
+            var wire = wires[i];
+            if(wire.tgt.moduleId == moduleId) {
+               var paramId = parseInt(wire.tgt.terminal.substr(5,wire.tgt.terminal.length-5)); 
+               args[args.length++]=this.execValues[wire.src.moduleId][wire.src.terminal]; 
+            }
+         }
+
+         
+         // "execution"
+         var code = "var tempJsBoxFunction = (function(arg0,arg1){"+module.config.codeText+"})";
+         eval(code);
+         var evalResult = tempJsBoxFunction.apply(window, args);
+
+         // store the value
+         this.execValues[moduleId] = {
+            out: evalResult
+         };
+
+         
+         this.executeModules(moduleId, "out");
+         
+      }      
       else if(t == "input") {
          
          var inputName = module.value.input.inputParams.name;
