@@ -22,7 +22,7 @@
 
 <style>
 div.WireIt-Container {
-	width: 350px; /* Prevent the modules from scratching on the right */
+	width: 300px; /* Prevent the modules from scratching on the right */
 }
 
 div.WireIt-InOutContainer {	
@@ -108,9 +108,10 @@ div.Bubble div.body {
 <script type="text/javascript" src="../../js/WiringEditor.js"></script>
 <script type="text/javascript" src="../../js/ImageContainer.js"></script>
 <script type="text/javascript" src="../../js/InOutContainer.js"></script>
-<script type="text/javascript" src="../../js/adapters/json-rpc.js"></script>
+<script type="text/javascript" src="../../js/adapters/gears.js"></script>
 
 <script type="text/javascript" src="ExecutionFrame.js"></script>
+<script type="text/javascript" src="modules.js"></script>
 <script type="text/javascript" src="sawire.js"></script>
 
 
@@ -136,7 +137,7 @@ YAHOO.util.Event.onDOMReady( sawire.init, sawire,true);
 <body class="yui-skin-sam">
 
 	<div id="top">
-		<div class="logo">WiringEditor</a></div>
+		<div class="logo">WiringEditor</div>
 		<div id="toolbar"></div>
 		<div class="topright">
 			<span>Hello there !</span> | 

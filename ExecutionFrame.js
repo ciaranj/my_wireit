@@ -122,7 +122,18 @@ ExecutionFrame.prototype = {
       //console.log("execute", module);
       if( t == "GetWorkItemById" ) {
           var id= module.value.input;
-          value= "<smf:workitem version='54'><smf:id foo='sdsd'>"+id+"</smf:id></smf:workitem>";
+          if( id == "[wired]" ) {
+               var wires = this.wiringConfig.working.wires;
+               var paramValue;
+               for(var i = 0 ; i < wires.length ; i++) {
+                  var wire = wires[i];
+                  if(wire.tgt.moduleId == moduleId) {
+                     id = this.execValues[wire.src.moduleId][wire.src.terminal];
+                     break;
+                  }
+              }              
+          }          
+          value= "<smf:workitem version='54'><smf:id>"+id+"</smf:id><smf:caseId>"+id+"</smf:caseId></smf:workitem>";
           // store the value
           this.execValues[moduleId] = {
              out: value
@@ -130,26 +141,68 @@ ExecutionFrame.prototype = {
 
           this.executeModules(moduleId, "out");
       }
-      else if( t == "DisplayWorkItem" ) {
+      else if( t == "GetCaseById" ) {
+          var id= module.value.input;
+          if( id == "[wired]" ) {
+               var wires = this.wiringConfig.working.wires;
+               var paramValue;
+               for(var i = 0 ; i < wires.length ; i++) {
+                  var wire = wires[i];
+                  if(wire.tgt.moduleId == moduleId) {
+                     id = this.execValues[wire.src.moduleId][wire.src.terminal];
+                     break;
+                  }
+              }              
+          }
+          value= "<smf:case><smf:id>"+id+"</smf:id><smf:customerId>"+id+"</smf:customerId>/smf:case>";
+          // store the value
+          this.execValues[moduleId] = {
+             out: value
+          };
+
+          this.executeModules(moduleId, "out");
+      }
+      else if( t == "GetCustomerById" ) {
+          var id= module.value.input;
+          if( id == "[wired]" ) {
+               var wires = this.wiringConfig.working.wires;
+               var paramValue;
+               for(var i = 0 ; i < wires.length ; i++) {
+                  var wire = wires[i];
+                  if(wire.tgt.moduleId == moduleId) {
+                     id = this.execValues[wire.src.moduleId][wire.src.terminal];
+                     break;
+                  }
+              }              
+          }          
+          value= "<smf:customer><smf:id>"+id+"</smf:id></smf:customer>";
+          // store the value
+          this.execValues[moduleId] = {
+             out: value
+          };
+
+          this.executeModules(moduleId, "out");
+      }
+      else if( t == "DisplayWorkItem" || t == "DisplayCase" || t =="DisplayCustomer") {
           //var params = [];
-          var workItemXml= module.value.workitemXML;
-          if( workItemXml == "[wired]") {
+          var xml= module.value.xml;
+          if( xml == "[wired]") {
               var wires = this.wiringConfig.working.wires;
               var paramValue;
               for(var i = 0 ; i < wires.length ; i++) {
                  var wire = wires[i];
                  if(wire.tgt.moduleId == moduleId) {
-                    workItemXml = this.execValues[wire.src.moduleId][wire.src.terminal];
+                    xml = this.execValues[wire.src.moduleId][wire.src.terminal];
                     break;
                  }
              }
           }
                     
-          alert(workItemXml);
+          alert(t+":"+xml);
           
           // store the value
           this.execValues[moduleId] = {
-             out: workItemXml
+             out: xml
           };
           
           this.executeModules(moduleId, "out");
@@ -200,7 +253,7 @@ ExecutionFrame.prototype = {
           
           this.executeModules(moduleId, "out");
       }
-      if( t == "xpath" ) {
+      else if( t == "xpath" ) {
           var expression= module.value.expr;
           var xml;
           var doExpressionSearch= false;
@@ -223,7 +276,7 @@ ExecutionFrame.prototype = {
           
          var dom= xmlParse(xml);
          var xpathExpr=  xpathParse(expression);
-         var value= xpathExpr.evaluate(new ExprContext(dom));
+         var value= xpathExpr.evaluate(new ExprContext(dom)).stringValue();
           this.execValues[moduleId] = {
              out: value
           };
@@ -349,13 +402,13 @@ ExecutionFrame.prototype = {
       }
       else {
          // HERE, WE HAVE A COMPOSED MODULE
-         var wiringText = jsBox.editor.pipesByName[t].working;
+         alert(t);
+         var wiringText = sawire.editor.pipesByName[t].working;
          var wiringConfig = {
             name: t,
             working: YAHOO.lang.JSON.parse(wiringText)
          };
          var f = new ExecutionFrame(wiringConfig, this.frameLevel+1, this, moduleId);
-         if( f.frameLevel > 5 ) {  throw e; }
          // build the params list
          var params = {};
          // Copy the default parameters value
