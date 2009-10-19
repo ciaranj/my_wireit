@@ -432,10 +432,21 @@ ExecutionFrame.prototype = {
           // Copy the default parameters value
           for(var key in module.value) {
              if(module.value.hasOwnProperty(key)) {
-                params[key] = module.value[key];
+                var paramValue= module.value[key];
+                params[key] = paramValue;
+                if( paramValue == "[wired]") {
+                      var wires = this.wiringConfig.working.wires;
+                      for(var i = 0 ; i < wires.length ; i++) {
+                         var wire = wires[i];
+                         if(wire.tgt.moduleId == moduleId) {
+                            paramValue = this.execValues[wire.src.moduleId][wire.src.terminal];
+                            break;
+                         }
+                     }
+                  }
                 var mappedField= module.config.groupConfig.map.containerMap.fields[key];
                 if( mappedField ) {
-                    module.config.groupConfig.modules[mappedField.containerId].value[mappedField.name]= module.value[key];
+                    module.config.groupConfig.modules[mappedField.containerId].value[mappedField.name]= paramValue;
                 }
              }
           }
