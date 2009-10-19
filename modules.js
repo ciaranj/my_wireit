@@ -38,6 +38,10 @@ modules[modules.length++] = {
     }
 };
 
+modules[modules.length++] ={
+    "name": "Group",
+    "container" : {"xtype":"WireIt.GroupFormContainer"}
+};
 
 modules[modules.length++] = {
    "name": "jsBox",
@@ -388,10 +392,12 @@ jsBox.ComposedContainer = function(options, layer) {
       
       options.fields = [];
       options.terminals = [];
-   
       var pipe = sawire.editor.getPipeByName(options.title);
       for(var i = 0 ; i < pipe.modules.length ; i++) {
          var m = pipe.modules[i];
+         var moduleDefinition =sawire.editor.modulesByName[m.name];
+         console.log(moduleDefinition);
+         
          if( m.name == "input") {
             m.value.input.inputParams.wirable = true;
             options.fields.push(m.value.input);

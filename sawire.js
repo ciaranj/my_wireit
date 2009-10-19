@@ -10,8 +10,12 @@ var sawire= {
     */
    init: function() {
 		this.editor = new sawire.WiringEditor(this.language);
+    	this.editor.toolbar.add({label : "Run", id: "WiringEditor-runButton", events : [ {name : "click", callback: function() { 
+    	    this.run();
+    	}, context:this } ] })
+		
 		// Open the infos panel
-		editor.accordionView.openPanel(2);
+		this.editor.accordionView.openPanel(2);
    },
 
    /**
@@ -21,6 +25,9 @@ var sawire= {
     */
    run: function() {
       var ef = new ExecutionFrame( this.editor.getValue() );
+      for(var containerId in this.editor.layer.containers) {
+          ExecutionFrame.clearExecutionStateForContainer(this.editor.layer.containers[containerId]);
+      }
       ef.run();
    }	
 };
@@ -34,26 +41,15 @@ sawire.WiringEditor = function(options) {
 
 YAHOO.lang.extend(sawire.WiringEditor, WireIt.WiringEditor, {
    
-   
-   /**
-    * Add the "run" button
-    */
-   renderButtons: function() {
-      sawire.WiringEditor.superclass.renderButtons.call(this);
 
-		// Add the run button
-      var toolbar = YAHOO.util.Dom.get('toolbar');
-      var runButton = new YAHOO.widget.Button({ label:"Run", id:"WiringEditor-runButton", container: toolbar });
-      runButton.on("click", sawire.run, sawire, true);
-   },
    	/**
 	 * Customize the load success handler for the composed module list
 	 */
 	onLoadSuccess: function(wirings) {
-		sawire.WiringEditor.superclass.onLoadSuccess.call(this,wirings);
+//		sawire.WiringEditor.superclass.onLoadSuccess.call(this,wirings);
 	
 		//  Customize to display composed module in the left list
-		this.updateComposedModuleList();
+//		this.updateComposedModuleList();
 	},
 	
 	/**

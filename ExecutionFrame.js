@@ -20,6 +20,20 @@ var ExecutionFrame = function(wiringConfig, frameLevel, parentFrame, parentIndex
    
 };
 
+ExecutionFrame.setExecutionStateForContainer =  function(container, state){
+    var bodyEl= container.bodyEl;
+      if( bodyEl ) {
+         if( state != "js-execution-starting") YAHOO.util.Dom.removeClass(bodyEl, "js-execution-starting");
+         if( state != "js-execution-ok") YAHOO.util.Dom.removeClass(bodyEl, "js-execution-ok");
+         if( state != "js-execution-failed") YAHOO.util.Dom.removeClass(bodyEl, "js-execution-failed");
+         if( state ) YAHOO.util.Dom.addClass(bodyEl, state);
+      }    
+};
+
+ExecutionFrame.clearExecutionStateForContainer =  function(container){
+    ExecutionFrame.setExecutionStateForContainer(container);
+};
+
 ExecutionFrame.prototype = {
    
    /**
@@ -64,7 +78,7 @@ ExecutionFrame.prototype = {
 
       //console.log("mayEval", this.wiringConfig.working.modules[moduleId]);
 
-      if(t == "GetWorkItemById" || t == "callback") {
+      if( t == "callback") {
          return true;
       }
       else if(t == "comment") {
@@ -112,12 +126,19 @@ ExecutionFrame.prototype = {
    
    
    execute: function(moduleId,params) {
-      
+
+      var moduleBodyEl;
       try {
          
       
       var module = this.wiringConfig.working.modules[moduleId];
       var t = module.name;
+      if( this.frameLevel == 0) {
+          moduleBodyEl= sawire.editor.layer.containers[moduleId].bodyEl;
+          if(moduleBodyEl) {
+              YAHOO.util.Dom.addClass(moduleBodyEl, 'js-execution-starting'); 
+          }
+      }
       
       //console.log("execute", module);
       if( t == "GetWorkItemById" ) {
@@ -400,8 +421,59 @@ ExecutionFrame.prototype = {
          
          this.parentFrame.executeModules(this.parentIndex, outputName);
       }
+      else if(t =="Group") {
+          var wiringConfig = {
+             name: t,
+             working: module.config.groupConfig
+          };
+          var f = new ExecutionFrame(wiringConfig, this.frameLevel+1, this, moduleId);
+          // build the params list
+          var params = {};
+          // Copy the default parameters value
+          for(var key in module.value) {
+             if(module.value.hasOwnProperty(key)) {
+                params[key] = module.value[key];
+                var mappedField= module.config.groupConfig.map.containerMap.fields[key];
+                if( mappedField ) {
+                    module.config.groupConfig.modules[mappedField.containerId].value[mappedField.name]= module.value[key];
+                }
+             }
+          }
+          // Overwrite with the wires values
+          var wires = this.wiringConfig.working.wires;
+          for(var i = 0 ; i < wires.length ; i++) {
+             var wire = wires[i];
+             if(wire.tgt.moduleId == moduleId) {
+                var paramName = wire.tgt.terminal;
+                var paramValue = this.execValues[wire.src.moduleId][wire.src.terminal];
+                params[paramName] = paramValue;
+             }
+          }
+          
+          module.config.groupConfig.map
+          
+          f.run(params);   
+          
+            
+          // store the value
+          var result= {};
+          for(var termId in module.config.terminals){
+              var term= module.config.terminals[termId];
+              if( term.ddConfig.type == "output") {
+                  var terminalReference= module.config.groupConfig.map.containerMap.terminals[term.name];
+                  result[term.name]=f.execValues[terminalReference.containerId][terminalReference.name];
+              }
+          }
+          
+
+          
+          this.execValues[moduleId] = result;
+          
+          this.executeModules(moduleId, "out");               
+      }
       else {
          // HERE, WE HAVE A COMPOSED MODULE
+         
          alert(t);
          var wiringText = sawire.editor.pipesByName[t].working;
          var wiringConfig = {
@@ -429,10 +501,16 @@ ExecutionFrame.prototype = {
          }
          f.run(params);
       }
+      if(this.frameLevel ==0 &&  moduleBodyEl) {
+          YAHOO.util.Dom.addClass(moduleBodyEl, 'js-execution-ok'); 
+      }      
       
       }
       catch(ex){
          console.log("error while executing module", module, ex);
+         if(moduleBodyEl) {
+             YAHOO.util.Dom.addClass(moduleBodyEl, 'js-execution-failed'); 
+         }
       }
       
    }
