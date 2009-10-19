@@ -19,47 +19,7 @@
 <!-- WireIt CSS -->
 <link rel="stylesheet" type="text/css" href="../../css/WireIt.css" />
 <link rel="stylesheet" type="text/css" href="../../css/WireItEditor.css" />
-
-<style>
-div.WireIt-Container {
-	width: 300px; /* Prevent the modules from scratching on the right */
-}
-
-div.WireIt-InOutContainer {	
-	width: 150px;
-}
-
-div.WireIt-InputExTerminal {
-	float: left;
-	width: 21px;
-	height: 21px;
-	position: relative;
-}
-div.WireIt-InputExTerminal div.WireIt-Terminal {
-	top: -3px;
-	left: -7px;
-}
-div.inputEx-Group div.inputEx-label {
-	width:100px;
-}
-
-div.WireIt-ImageContainer {
-	width: auto;
-}
-
-div.Bubble div.body {
-	width: 70px;
-	height: 45px;
-	opacity: 0.8;
-	cursor: move;
-}
-
-.WiringEditor-module span {
-	position: relative;
-	top: -3px;
-}
-
-</style>
+<link rel="stylesheet" type="text/css" href="sawire.css">
 
 <script type="text/javascript" src="util.js"></script>
 <script type="text/javascript" src="xmltoken.js"></script>
@@ -109,6 +69,12 @@ div.Bubble div.body {
 <script type="text/javascript" src="../../js/ImageContainer.js"></script>
 <script type="text/javascript" src="../../js/InOutContainer.js"></script>
 <script type="text/javascript" src="../../js/adapters/gears.js"></script>
+
+<script type="text/javascript" src="../../js/RubberBand.js"></script>
+<script type="text/javascript" src="../../js/GroupUtils.js"></script>
+<script type="text/javascript" src="../../js/GroupFormContainer.js"></script>
+<script type="text/javascript" src="../../js/Group.js"></script>
+<script type="text/javascript" src="../../js/Grouper.js"></script>
 
 <script type="text/javascript" src="ExecutionFrame.js"></script>
 <script type="text/javascript" src="modules.js"></script>
@@ -164,18 +130,16 @@ YAHOO.util.Event.onDOMReady( sawire.init, sawire,true);
 			</div>
 		</li>
 		<li>
-			<h2>Infos</h2>
+			<h2>Grouping</h2>
 			<div>
-				<div style="padding: 10px;">
-					<p>This example shows how to use the <i>ImageContainer</i> and <i>FormContainer</i> in a language definition.</p>
-					<br />
-					<p><b>Drag and drop modules from the Module list</b> on the left to the working layer in the middle.</p>
-					<br />
-					<p><a href="demo.js" target="_new">Click here to view the language definition for this editor.</a></p>
+				<div id="groupBody">
+				    Select some containers using the G in the top right corner then click to make the group
+				    <button id="makeGroupButton" onclick="sawire.editor.layer.grouper.makeGroup()">Make</button>
 				</div>
+				<br />
+				<div id="groupConfig"></div>
 			</div>
-		</li>
-		
+		</li>		
 	  </ul>
 	</div>
 
